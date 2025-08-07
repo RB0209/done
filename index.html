@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timeline Tiles with Modal</title>
+  <style>
+    body {
+      background-color: #f9f9f8;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    .timeline-container {
+      max-width: 1300px;
+      margin: auto;
+    }
+    .year-selector {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 35px;
+    }
+    .year-btn {
+      background-color: white;
+      border: 2px solid #38b6ff;
+      color: #38b6ff;
+      padding: 12px 26px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      font-size: 1rem;
+      box-shadow: 0 4px 10px rgba(56, 182, 255, 0.2);
+    }
+    .year-btn:hover,
+    .year-btn.active {
+      background-color: #38b6ff;
+      color: white;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 14px rgba(56, 182, 255, 0.4);
+    }
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 25px;
+    }
+    .tile {
+      background-color: white;
+      border-radius: 20px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      transition: transform 0.4s, box-shadow 0.4s, border 0.3s;
+      cursor: pointer;
+      position: relative;
+      height: 400px;
+      display: flex;
+      flex-direction: column;
+      border: 2px solid transparent;
+    }
+    .tile:hover {
+      transform: scale(1.03);
+      box-shadow: 0 10px 20px rgba(56, 182, 255, 0.25);
+      border: 2px solid #38b6ff;
+    }
+    .tile img {
+      width: 100%;
+      height: 260px;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    .tile:hover img {
+      transform: scale(1.05);
+    }
+    .tile-title {
+      padding: 10px 16px 4px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #38b6ff;
+    }
+    .tile-desc {
+      padding: 0 16px 10px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      color: #444;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .modal-content {
+      background-color: #fff;
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      position: relative;
+    }
+    .modal-content h3 {
+      margin-top: 0;
+      color: #38b6ff;
+    }
+    .modal-content p {
+      color: #333;
+      margin-bottom: 0;
+    }
+  </style>
+</head>
+<body>
+  <audio id="hoverSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d689ba46c2.mp3?filename=click-124467.mp3" preload="auto"></audio>
+  <div class="timeline-container">
+    <div class="year-selector" id="yearSelector"></div>
+    <div class="tiles" id="tilesContainer"></div>
+  </div>
+
+  <div class="modal" id="modal" style="display: none;">
+    <div class="modal-content" id="modalContent"></div>
+  </div>
+
+  <script>
+    const timelineData = {
+      2011: [
+        {
+          title: "Social Awareness through Local Public Events and Programs during Festivals",
+          desc: "Founded in 2011 in the slums of Khar East, Mumbai, CARE FOUNDATION began its journey as a youth-led initiative driven by purpose and passion. The young team started with small awareness drives and impactful programs during festivals and public functions, aiming to spread positivity and social consciousness in their community.",
+          img: "image1.jpg"
+        }
+      ],
+      2012: [
+        { title: "National Flag Pride Rally" },
+        { title: "Socio-cultural program for youth motivation" }
+      ],
+      2013: [
+        { title: "National Flag Pride Rally" },
+        { title: "Socio-cultural program for youth motivation" },
+        { title: "Summer camps and winter camps" },
+        { title: "Radio City 91.1 FM" }
+      ],
+      2014: [
+        { title: "National Flag Pride Rally" },
+        { title: "Summer camps and winter camps" }
+      ],
+      2015: [
+        { title: "National Flag Pride Rally" },
+        { title: "P3 Pre Primary" },
+        { title: "Summer camps and winter camps" }
+      ],
+      2016: [
+        { title: "National Flag Pride Rally" },
+        { title: "P3 Pre Primary" },
+        { title: "Youth motivation programs" }
+      ],
+      2017: [
+        { title: "National Flag Pride Rally" },
+        { title: "FANACT" },
+        { title: "DANSEN" },
+        { title: "P3 Pre Primary" }
+      ],
+      2018: [
+        { title: "National Flag Pride Rally" },
+        { title: "FANACT" },
+        { title: "Legal Awareness Seminar" },
+        { title: "AABAA" },
+        { title: "P3 Pre Primary" },
+        { title: "Digi Womania Seminar" },
+        { title: "Notebooks distribution" },
+        { title: "Radio City 91.1 FM" }
+      ],
+      2019: [
+        { title: "National Flag Pride Campaign" },
+        { title: "Legal Awareness Seminars" },
+        { title: "DIGI WOMANIA Seminar" },
+        { title: "P3 Pre Primary" },
+        { title: "Kerala flood donation" },
+        { title: "Medical camp" }
+      ],
+      2020: [
+        { title: "National Flag Pride Campaign" },
+        { title: "Food, Water, Mask & Sanitizer Distribution" },
+        { title: "Medical camp" },
+        { title: "Sanitary pad distribution" }
+      ],
+      2021: [
+        { title: "National Flag Pride Campaign" },
+        { title: "Food & Water Distribution, Masks, Sanitizers" },
+        { title: "Medical Aid under Project ASHA" },
+        { title: "Juhu beach cleaning" }
+      ],
+      2022: [
+        { title: "National Flag Pride Campaign" },
+        { title: "Food & Water Distribution" },
+        { title: "Masks, Sanitizers, Stationary Kit Distribution" },
+        { title: "Sanitary pad distribution" }
+      ],
+      2023: [
+        { title: "Project ASHA" },
+        { title: "Feed The Need" },
+        { title: "Stationary kit distribution" }
+      ],
+      2024: [
+        { title: "Project ASHA" },
+        { title: "Feed The Need" },
+        { title: "Stationary kit distribution" },
+        { title: "Food distribution" }
+      ],
+      2025: [
+        { title: "Project ASHA" },
+        { title: "Feed The Need" },
+        { title: "Stationary kit distribution" },
+        { title: "Food distribution" }
+      ]
+    };
+
+    const yearSelector = document.getElementById('yearSelector');
+    const tilesContainer = document.getElementById('tilesContainer');
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modalContent');
+    const hoverSound = document.getElementById('hoverSound');
+
+    Object.keys(timelineData).forEach((year, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'year-btn';
+      btn.textContent = year;
+      if (idx === 0) btn.classList.add('active');
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        loadTiles(year);
+      });
+      yearSelector.appendChild(btn);
+    });
+
+    function loadTiles(year) {
+      tilesContainer.innerHTML = '';
+      timelineData[year].forEach(project => {
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        const title = project.title;
+        const desc = project.desc || `More details about "${title}" will be updated.`;
+        const img = project.img || 'image1.jpg';
+
+        tile.innerHTML = `
+          <img src="${img}" alt="${title}" />
+          <div class="tile-title">${title}</div>
+          <div class="tile-desc">${desc}</div>
+        `;
+
+        tile.addEventListener('mouseenter', () => {
+          hoverSound.currentTime = 0;
+          hoverSound.play();
+        });
+
+        tile.addEventListener('click', () => {
+          modalContent.innerHTML = `
+            <h3>${title}</h3>
+            <p>${desc}</p>
+          `;
+          modal.style.display = 'flex';
+        });
+
+        tilesContainer.appendChild(tile);
+      });
+    }
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+
+    loadTiles('2011');
+  </script>
+</body>
+</html>
